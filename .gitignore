@@ -1,2 +1,3 @@
 .idea/
 load_tests/__pycache__/loadtest.cpython-311.pyc
+ load_tests/__pycache__/
