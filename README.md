@@ -1,35 +1,92 @@
-# Generating a live stream grafana dashboard for Locust
+# Locust Grafana Stream Dashboard
+
+[![Docker](https://img.shields.io/badge/Docker-Compatible-blue)](https://www.docker.com/)
+[![Locust](https://img.shields.io/badge/Locust-Load%20Testing-green)](https://locust.io/)
+[![Grafana](https://img.shields.io/badge/Grafana-Monitoring-orange)](https://grafana.com/)
+[![Prometheus](https://img.shields.io/badge/Prometheus-Metrics-red)](https://prometheus.io/)
 
 ## Description
 
-This is an article which defines how to generate a live dashboard which streams data from locust using locust exporter 
-and uses a time series db to store the perf data which then gets ingested by grafana to show the respective dashboard. 
+A complete containerized solution for real-time load testing visualization using Locust, Prometheus, and Grafana. This project provides a live streaming dashboard that displays performance metrics during load testing with automatic data collection and visualization.
 
-## Brief
+## Architecture
 
-When we do a load test, we want to see the results instantly in the metrics we want. We may need to focus on a different 
-metric in each load test. We need to be able to edit these metrics optionally and do customization on them. In this 
-article, we will learn how to do load tests with locust, export metrics instantly with Prometheus, and show the metrics 
-we want in Grafana.
+![](images/locustgraphanastream.drawio.png)
 
-First of all, what is this locust; Locust is an easy-to-use, scriptable and scalable performance testing tool. 
-You define the behavior of your users in regular Python code, instead of using a clunky UI or domain-specific language.
-In this test, we will use https://jsonplaceholder.typicode.com/ as the fake API. If you want to examine the details, 
-you can see here what kind of fake API it is.
+## Features
 
-Now let’s prepare a simple test with locust. In a simple way, as you can see below, we determine on which endpoints 
-we will simulate our load test with a simple piece of [code](load_tests/loadtest.py).
+- **Real-time Monitoring**: Live performance metrics during load testing
+- **Containerized Setup**: Complete Docker Compose configuration
+- **Pre-configured Dashboard**: Ready-to-use Grafana dashboard for Locust metrics
+- **Scalable Architecture**: Easy to extend with additional test scenarios
+- **Automated Data Pipeline**: Seamless data flow from Locust to Grafana
 
-Use the codeblock to configure locust using the docker image
+## Prerequisites
 
-```docker
-  locust:
-    image: locustio/locust
-    ports:
-      - "8089:8089"
-    volumes:
-      - ./load_tests/:/mnt/locust
-    command: -f /mnt/locust/loadtest.py
+- Docker Desktop installed and running
+- Docker Compose v2.0+
+- 8GB+ RAM recommended
+- Ports 3000, 8089, 9090, 9646 available
+
+## Quick Start
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd locustgrafanastream
+   ```
+
+2. **Start all services**
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Access the applications**
+   - Locust Web UI: http://localhost:8089
+   - Prometheus: http://localhost:9090
+   - Grafana: http://localhost:3000 (admin/admin)
+   - Metrics Endpoint: http://localhost:9646/metrics
+
+## Project Structure
+
+```
+locustgrafanastream/
+├── Dashboard/
+│   └── dashboard.json          # Pre-configured Grafana dashboard
+├── images/                     # Documentation screenshots
+├── load_tests/
+│   └── loadtest.py            # Locust test scenarios
+├── prometheus/
+│   └── prometheus.yml         # Prometheus configuration
+├── docker-compose.yml         # Complete stack definition
+└── README.md                  # This file
+```
+
+## About the Components
+
+### Locust
+Locust is an easy-to-use, scriptable and scalable performance testing tool. You define user behavior in regular Python code instead of using a clunky UI or domain-specific language. This project uses https://jsonplaceholder.typicode.com/ as the target API for demonstration.
+
+### Test Configuration
+
+The load test is defined in [`load_tests/loadtest.py`](load_tests/loadtest.py) with the following endpoints:
+
+- `GET /posts` - Fetch all posts
+- `GET /posts/1/comments` - Fetch comments for post 1
+- `GET /photos` - Fetch all photos
+- `GET /todos` - Fetch all todos  
+- `GET /users` - Fetch all users
+
+**Locust Service Configuration:**
+
+```yaml
+locust:
+  image: locustio/locust
+  ports:
+    - "8089:8089"
+  volumes:
+    - ./load_tests/:/mnt/locust
+  command: -f /mnt/locust/loadtest.py
 ```
 
 After running the docker-compose up command, we access our locust panel from the specified port.
@@ -114,4 +171,3 @@ volumes:
 ```
 
 ![](images/grafana.png)
-
