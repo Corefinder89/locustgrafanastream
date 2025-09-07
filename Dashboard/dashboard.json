@@ -21,7 +21,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": 2,
   "links": [],
   "panels": [
     {
@@ -34,23 +34,14 @@
           "mappings": [
             {
               "options": {
-                "1": {
-                  "text": "Hatching"
-                }
-              },
-              "type": "value"
-            },
-            {
-              "options": {
                 "0": {
+                  "color": "red",
+                  "index": 1,
                   "text": "Stop"
-                }
-              },
-              "type": "value"
-            },
-            {
-              "options": {
+                },
                 "2": {
+                  "color": "green",
+                  "index": 0,
                   "text": "Running"
                 }
               },
@@ -1798,5 +1789,5 @@
   "timezone": "browser",
   "title": "LoadStream",
   "uid": "0WllLp6mz",
-  "version": 24
+  "version": 3
 }
