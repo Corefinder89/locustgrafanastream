@@ -6,6 +6,11 @@ services:
     volumes:
       - ./load_tests/:/mnt/locust
     command: -f /mnt/locust/loadtest.py
+    networks:
+      - monitoring
+    restart: unless-stopped
+    read_only: true
+
   locust-metrics-exporter:
     image: containersol/locust_exporter
     ports:
@@ -14,16 +19,25 @@ services:
       - LOCUST_EXPORTER_URI=http://locust:8089
     depends_on:
       - locust
+    networks:
+      - monitoring
+    restart: unless-stopped
+    read_only: true
+
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro  # Mount the config file
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
-      - "9090:9090"  # Expose Prometheus on port 9090
+      - "9090:9090"
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'  # Explicit config file path
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - monitoring
     restart: unless-stopped
+    read_only: true
+
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -31,9 +45,22 @@ services:
       - "3000:3000"
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./Dashboard/dashboard.json:/etc/grafana/provisioning/dashboards/dashboard.json:ro
+      - ./Dashboard/provisioning/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - ./Dashboard/provisioning/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
     environment:
-      - GF_SECURITY_ADMIN=admin
-      - GF_SECURITY_PASSWORD=admin
+      - GF_SECURITY_ADMIN=${GF_SECURITY_ADMIN:-admin}
+      - GF_SECURITY_PASSWORD=${GF_SECURITY_PASSWORD:-admin}
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
     restart: unless-stopped
+    read_only: true
+
 volumes:
-  grafana_data:  # Define the named volume here
+  grafana_data:
+
+networks:
+  monitoring:
+    driver: bridge
