@@ -43,6 +43,11 @@
                   "color": "green",
                   "index": 0,
                   "text": "Running"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "Running"
                 }
               },
               "type": "value"
