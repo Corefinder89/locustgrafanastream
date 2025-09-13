@@ -7,19 +7,28 @@
 
 ## Description
 
-A complete containerized solution for real-time load testing visualization using Locust, Prometheus, and Grafana. This project provides a live streaming dashboard that displays performance metrics during load testing with automatic data collection and visualization.
+A complete containerized solution for real-time load testing visualization using Locust, Prometheus, and Grafana. This project provides a fully automated monitoring stack with pre-configured dashboards, data sources, and secure networking for comprehensive load testing analysis.
 
 ## Architecture
 
-![](images/locustgraphanastream.drawio.png)
+![Architecture Diagram](images/locustgraphanastream.drawio.png)
 
-## Features
+**Data Flow:**
+```
+Locust → Metrics Exporter → Prometheus → Grafana Dashboard
+```
 
-- **Real-time Monitoring**: Live performance metrics during load testing
-- **Containerized Setup**: Complete Docker Compose configuration
-- **Pre-configured Dashboard**: Ready-to-use Grafana dashboard for Locust metrics
-- **Scalable Architecture**: Easy to extend with additional test scenarios
-- **Automated Data Pipeline**: Seamless data flow from Locust to Grafana
+All services run in an isolated Docker network with automatic service discovery and configuration provisioning.
+
+## ✨ Features
+
+- **🚀 Zero-Configuration Setup**: Complete stack launches with a single command.
+- **📊 Auto-Provisioned Dashboards**: Grafana dashboards and datasources configured automatically.
+- **🔒 Secure Networking**: Isolated Docker network with proper service communication.
+- **🔄 Real-time Monitoring**: Live performance metrics during load testing.
+- **📈 Production-Ready**: Read-only containers with proper restart policies.
+- **🎛️ Environment Variables**: Configurable admin credentials via environment variables.
+- **🐳 Container Optimization**: Lightweight, secure container configurations.
 
 ## Prerequisites
 
@@ -47,38 +56,58 @@ A complete containerized solution for real-time load testing visualization using
    - Grafana: http://localhost:3000 (admin/admin)
    - Metrics Endpoint: http://localhost:9646/metrics
 
-## Project Structure
+## 🚀 Quick Start
+
+1. **Clone and navigate to the project**
+   ```bash
+   git clone <repository-url>
+   cd locustgrafanastream
+   ```
+
+2. **Start the complete monitoring stack**
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Access the applications**
+   | Service | URL | Credentials |
+   |---------|-----|-----------|
+   | 🕷️ Locust Web UI | http://localhost:8089 | N/A |
+   | 📊 Grafana Dashboard | http://localhost:3000 | admin/admin |
+   | 🔍 Prometheus | http://localhost:9090 | N/A |
+   | 📈 Raw Metrics | http://localhost:9646/metrics | N/A |
+
+4. **Start load testing**
+   - Open Locust UI at http://localhost:8089
+   - Set number of users and spawn rate
+   - Target host is pre-configured to `jsonplaceholder.typicode.com`
+   - Start the test and view real-time metrics in Grafana
+
+## 📁 Project Structure
 
 ```
 locustgrafanastream/
 ├── Dashboard/
-│   └── dashboard.json          # Pre-configured Grafana dashboard
-├── images/                     # Documentation screenshots
+│   ├── dashboard.json                 # Pre-configured Grafana dashboard
+│   └── provisioning/
+│       ├── dashboards.yml            # Dashboard auto-provisioning config
+│       └── datasources.yml           # Prometheus datasource config
+├── images/
+│   ├── locustgraphanastream.drawio.png # Architecture diagram
+│   └── *.png                         # Documentation screenshots
 ├── load_tests/
-│   └── loadtest.py            # Locust test scenarios
+│   ├── loadtest.py                   # Locust test scenarios
+│   └── __pycache__/                  # Python bytecode cache
 ├── prometheus/
-│   └── prometheus.yml         # Prometheus configuration
-├── docker-compose.yml         # Complete stack definition
-└── README.md                  # This file
+│   └── prometheus.yml                # Prometheus scraping configuration
+├── docker-compose.yml               # Complete stack definition
+├── .gitignore                        # Git ignore rules
+└── README.md                         # This documentation
 ```
 
-## About the Components
+## 🔧 Service Configuration
 
-### Locust
-Locust is an easy-to-use, scriptable and scalable performance testing tool. You define user behavior in regular Python code instead of using a clunky UI or domain-specific language. This project uses https://jsonplaceholder.typicode.com/ as the target API for demonstration.
-
-### Test Configuration
-
-The load test is defined in [`load_tests/loadtest.py`](load_tests/loadtest.py) with the following endpoints:
-
-- `GET /posts` - Fetch all posts
-- `GET /posts/1/comments` - Fetch comments for post 1
-- `GET /photos` - Fetch all photos
-- `GET /todos` - Fetch all todos  
-- `GET /users` - Fetch all users
-
-**Locust Service Configuration:**
-
+### Locust Load Tester
 ```yaml
 locust:
   image: locustio/locust
@@ -87,87 +116,239 @@ locust:
   volumes:
     - ./load_tests/:/mnt/locust
   command: -f /mnt/locust/loadtest.py
+  networks:
+    - monitoring
+  restart: unless-stopped
+  read_only: true
 ```
 
-After running the docker-compose up command, we access our locust panel from the specified port.
+**Test Scenarios:**
+- `GET /posts` - Fetch all posts
+- `GET /posts/1/comments` - Fetch comments for a specific post
+- `GET /photos` - Fetch all photos  
+- `GET /todos` - Fetch all todos
+- `GET /users` - Fetch all users
 
-![](images/locust.png)
-
-After entering our values ​​according to the metrics we mentioned here, we can run our test. These are x 
-concurrent users, hatch rate of 1 user/s, and host. When we start the test, we can see that it works somehow without 
-any errors.
-
-![](images/locustmetrics.png)
-
-Now we need to export the locust metrics for Grafana because you need to perform the metric flow between locust and 
-Grafana with a real-time tool. In this article, we will do it with Prometheus. First, we will use the exporter that 
-`ContainerSolution` has prepared as a locust-exporter. If you want to examine it in more detail, you can reach here and 
-create a different exporter for yourself. As you can see below, we update docker-compose.yml again. This time we 
-integrate the locust-exporter and define our local locust as the environment.
-
-```docker
-  locust-metrics-exporter:
-    image: containersol/locust_exporter
-    ports:
-      - "9646:9646"
-    environment:
-      - LOCUST_EXPORTER_URI=http://locust:8089
-    depends_on:
-      - locust
+### Metrics Exporter
+```yaml
+locust-metrics-exporter:
+  image: containersol/locust_exporter
+  ports:
+    - "9646:9646"
+  environment:
+    - LOCUST_EXPORTER_URI=http://locust:8089
+  depends_on:
+    - locust
+  networks:
+    - monitoring
+  restart: unless-stopped
+  read_only: true
 ```
 
-And as always — run docker-compose up. We should be able to see metrics under 
-http://localhost:9646/metrics.
-
-![](images/locust-exporter.png)
-
-Let’s look at how we integrate Prometheus and send these metrics.
-First, we need to create a Prometheus config file and here we determine where and how many seconds you will receive the 
-data. (prometheus.yml)
-
-```yml
-scrape_configs:
-- job_name: prometheus_scrapper
-  scrape_interval: 5s
-  static_configs:
-    - targets:
-        - locust-metrics-exporter:9646
+### Prometheus Time-Series Database
+```yaml
+prometheus:
+  image: prom/prometheus:latest
+  volumes:
+    - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  ports:
+    - "9090:9090"
+  command:
+    - '--config.file=/etc/prometheus/prometheus.yml'
+  networks:
+    - monitoring
+  restart: unless-stopped
+  read_only: true
 ```
-Then, we update our docker-compose.yml file and do the Prometheus integration as follows.
 
-```docker
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro  # Mount the config file
-    ports:
-      - "9090:9090"  # Expose Prometheus on port 9090
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'  # Explicit config file path
-    restart: unless-stopped
-```
-Now it’s time to see our metrics on Prometheus, we start our load test and check whether the metrics are Prometheus.
+**Scraping Configuration:**
+- **Target**: `locust-metrics-exporter:9646`
+- **Interval**: 5 seconds
+- **Job Name**: `prometheus_scrapper`
 
-![](images/prometheus.png)
-
-Once this is done we can now use prometheus as the data source to visualize the data using graphana. Now since graphana
-is already available in as a docker image we will be using docker compose to pull the docker image.
-
-```docker
+### Grafana Visualization
+```yaml
 grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana_data:/var/lib/grafana
-    environment:
-      - GF_SECURITY_ADMIN=admin
-      - GF_SECURITY_PASSWORD=admin
-    restart: unless-stopped
-volumes:
-  grafana_data:  # Define the named volume here
+  image: grafana/grafana:latest
+  ports:
+    - "3000:3000"
+  volumes:
+    - grafana_data:/var/lib/grafana
+    - ./Dashboard/dashboard.json:/etc/grafana/provisioning/dashboards/dashboard.json:ro
+    - ./Dashboard/provisioning/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+    - ./Dashboard/provisioning/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+  environment:
+    - GF_SECURITY_ADMIN=${GF_SECURITY_ADMIN:-admin}
+    - GF_SECURITY_PASSWORD=${GF_SECURITY_PASSWORD:-admin}
+  depends_on:
+    - prometheus
+  networks:
+    - monitoring
+  restart: unless-stopped
+  read_only: true
 ```
 
-![](images/grafana.png)
+## 📊 Dashboard Metrics
+
+The pre-configured Grafana dashboard includes:
+
+### Performance Metrics
+- **Response Times**: Min, Max, Average, Median, P95, P50
+- **Request Rate**: RPS per endpoint and total throughput
+- **Content Analysis**: Average content length per endpoint
+
+### Load Testing Metrics  
+- **User Simulation**: Active users, spawn rate, and test status
+- **Request Statistics**: Total requests and request distribution
+- **Error Analysis**: Failure rates, error counts, and error details
+
+### System Health
+- **Service Status**: Locust and exporter health indicators
+- **Endpoint Performance**: Per-endpoint performance breakdown
+- **Real-time Graphs**: Live updating time-series visualizations
+
+## 🛠️ Customization
+
+### Environment Variables
+```bash
+# Custom Grafana credentials
+export GF_SECURITY_ADMIN=myusername
+export GF_SECURITY_PASSWORD=mypassword
+docker-compose up -d
+```
+
+### Modifying Load Tests
+Edit [`load_tests/loadtest.py`](load_tests/loadtest.py):
+```python
+from locust import HttpUser, task, between
+
+class CustomAPI(HttpUser):
+    wait_time = between(1, 3)
+    host = "https://your-api.com"
+    
+    @task
+    def custom_endpoint(self):
+        self.client.get("/your-endpoint")
+```
+
+### Adding Custom Dashboards
+1. Create your dashboard in Grafana UI
+2. Export JSON and place in `Dashboard/`
+3. Update `Dashboard/provisioning/dashboards.yml` to include new dashboard
+
+## 🔍 Monitoring and Debugging
+
+### Health Checks
+```bash
+# Verify all services are running
+docker-compose ps
+
+# Check service logs
+docker-compose logs locust
+docker-compose logs prometheus  
+docker-compose logs grafana
+
+# View metrics endpoint
+curl http://localhost:9646/metrics
+```
+
+### Prometheus Targets
+Visit http://localhost:9090/targets to verify:
+- ✅ `locust-metrics-exporter:9646` is UP
+- ✅ Scraping interval is 5s
+- ✅ Last scrape was successful
+
+### Grafana Data Source
+The Prometheus data source is auto-configured with:
+- **URL**: `http://prometheus:9090`
+- **Access**: Server (default)
+- **Scrape Interval**: 5s
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+1. **Docker Desktop not running**
+   ```bash
+   # Verify Docker is running
+   docker --version
+   docker-compose --version
+   ```
+
+2. **Port conflicts**
+   ```bash
+   # Check for port conflicts (Windows)
+   netstat -an | findstr "3000 8089 9090 9646"
+   ```
+
+3. **Services failing to start**
+   ```bash
+   # Check individual service logs
+   docker-compose logs [service-name]
+   
+   # Restart specific service
+   docker-compose restart [service-name]
+   ```
+
+4. **Dashboard not loading**
+   - Verify Grafana is running: http://localhost:3000
+   - Check Prometheus connectivity in Grafana → Data Sources
+   - Ensure dashboard provisioning files are mounted correctly
+
+5. **No metrics in dashboard**
+   - Start a load test in Locust first
+   - Verify metrics exporter: http://localhost:9646/metrics
+   - Check Prometheus targets: http://localhost:9090/targets
+
+### Reset Everything
+```bash
+# Stop and remove all containers, networks, and volumes
+docker-compose down -v
+docker-compose up -d
+```
+
+## 🏗️ Development
+
+### Adding New Services
+```yaml
+# In docker-compose.yml
+new-service:
+  image: your-image
+  networks:
+    - monitoring
+  restart: unless-stopped
+  read_only: true
+```
+
+### Custom Prometheus Rules
+Edit `prometheus/prometheus.yml` to add:
+- New scrape targets
+- Custom scrape intervals  
+- Additional monitoring endpoints
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Add tests if applicable
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+## 📏 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+## 🙏 Acknowledgments
+
+- [Locust](https://locust.io/) - Modern load testing framework
+- [Prometheus](https://prometheus.io/) - Time-series monitoring system  
+- [Grafana](https://grafana.com/) - Observability and visualization platform
+- [ContainerSolutions](https://github.com/ContainerSolutions/locust_exporter) - Locust Prometheus Exporter
+
+---
+
+**Happy Load Testing! 🚀**

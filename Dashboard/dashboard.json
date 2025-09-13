@@ -39,6 +39,11 @@
                   "index": 1,
                   "text": "Stop"
                 },
+                "1": {
+                  "color": "green",
+                  "index": 2,
+                  "text": "Running"
+                },
                 "2": {
                   "color": "green",
                   "index": 0,
@@ -1789,5 +1794,5 @@
   "timezone": "browser",
   "title": "LoadStream",
   "uid": "0WllLp6mz",
-  "version": 3
+  "version": 4
 }
