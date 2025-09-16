@@ -49,7 +49,7 @@ jobs:
           pip install -r requirements-dev.txt
       - name: Install Node.js dependencies
         run: |
-          npm install -g markdownlint-cli jsonlint yaml-lint
+          npm install -g markdownlint-cli jsonlint
       - name: Run Python linters
         run: |
           echo "Running Black formatter check..."
