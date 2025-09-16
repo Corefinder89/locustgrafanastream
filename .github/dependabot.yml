@@ -51,10 +51,8 @@ updates:
       day: tuesday
       time: 08:00
     open-pull-requests-limit: 3
-    reviewers:
-      - '@me'  # Replace with your GitHub username
     assignees:
-      - '@me'  # Replace with your GitHub username
+      - 'Corefinder89'  # Replace with your GitHub username
     commit-message:
       prefix: chore
       include: scope
