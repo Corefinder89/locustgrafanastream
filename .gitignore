@@ -2,3 +2,20 @@
 load_tests/__pycache__/loadtest.cpython-311.pyc
 load_tests/__pycache__/
 __pycache__/
+
+# Linter outputs
+bandit-report.json
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
