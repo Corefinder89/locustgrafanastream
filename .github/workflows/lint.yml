@@ -163,25 +163,170 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Run hadolint on Dockerfile
-      uses: hadolint/hadolint-action@v3.1.0
-      if: hashFiles('Dockerfile') != ''
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        dockerfile: Dockerfile
-        format: sarif
-        output-file: hadolint-results.sarif
-        no-fail: true
+        python-version: '3.11'
         
-    - name: Upload hadolint scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v2
-      if: hashFiles('hadolint-results.sarif') != ''
-      with:
-        sarif_file: hadolint-results.sarif
-        
-    - name: Lint docker-compose.yml
+    - name: Install docker-compose linting tools
       run: |
-        echo "Validating docker-compose.yml..."
+        python -m pip install --upgrade pip
+        pip install docker-compose-check yamllint
+        npm install -g dockerfilelint
+        
+    - name: Validate docker-compose.yml syntax
+      run: |
+        echo "🔍 Validating docker-compose.yml syntax..."
         docker-compose config -q
+        
+    - name: Check docker-compose.yml with yamllint
+      run: |
+        echo "🔍 Running yamllint on docker-compose.yml..."
+        yamllint docker-compose.yml
+        
+    - name: Validate docker-compose services configuration
+      run: |
+        echo "🔍 Checking docker-compose services..."
+        
+        # Check for security best practices
+        echo "Checking for security best practices..."
+        
+        # Check if services are using read_only where possible
+        if ! grep -q "read_only: true" docker-compose.yml; then
+          echo "⚠️  Warning: No read_only containers found. Consider adding read_only: true for security."
+        else
+          echo "✅ Found read_only containers - good for security!"
+        fi
+        
+        # Check for restart policies
+        if ! grep -q "restart:" docker-compose.yml; then
+          echo "⚠️  Warning: No restart policies defined. Consider adding restart policies."
+        else
+          echo "✅ Restart policies found!"
+        fi
+        
+        # Check for custom networks
+        if ! grep -q "networks:" docker-compose.yml; then
+          echo "⚠️  Warning: Using default network. Consider custom networks for isolation."
+        else
+          echo "✅ Custom networks configured!"
+        fi
+        
+        # Check for volume mounts security
+        if grep -q ":/.*:rw" docker-compose.yml; then
+          echo "⚠️  Warning: Found read-write volume mounts. Consider read-only where possible."
+        fi
+        
+        if grep -q ":/.*:ro" docker-compose.yml; then
+          echo "✅ Found read-only volume mounts - good security practice!"
+        fi
+        
+    - name: Check for exposed ports security
+      run: |
+        echo "🔍 Checking exposed ports security..."
+        
+        # Extract all exposed ports
+        EXPOSED_PORTS=$(grep -E "^\s*-\s*\"[0-9]+:[0-9]+\"" docker-compose.yml | wc -l || echo "0")
+        echo "Found $EXPOSED_PORTS exposed port mappings"
+        
+        # Check for common insecure ports
+        if grep -q "22:22" docker-compose.yml; then
+          echo "🚨 WARNING: SSH port 22 is exposed - this may be a security risk!"
+        fi
+        
+        if grep -q "3389:3389" docker-compose.yml; then
+          echo "🚨 WARNING: RDP port 3389 is exposed - this may be a security risk!"
+        fi
+        
+        # List all exposed ports for review
+        echo "📋 All exposed ports:"
+        grep -E "^\s*-\s*\"[0-9]+:[0-9]+\"" docker-compose.yml | sed 's/^[[:space:]]*-[[:space:]]*"/  - /' | sed 's/"$//' || echo "  No exposed ports found"
+        
+    - name: Check Docker image tags
+      run: |
+        echo "🔍 Checking Docker image tags..."
+        
+        # Check for latest tags (not recommended for production)
+        if grep -q ":latest" docker-compose.yml; then
+          echo "⚠️  WARNING: Found ':latest' tags. Consider using specific versions for reproducibility."
+          grep -n ":latest" docker-compose.yml
+        else
+          echo "✅ No ':latest' tags found - good practice!"
+        fi
+        
+        # List all images with their tags
+        echo "📋 Docker images used:"
+        grep -E "^\s*image:" docker-compose.yml | sed 's/^[[:space:]]*image:[[:space:]]*/  - /'
+        
+    - name: Validate environment variables
+      run: |
+        echo "🔍 Checking environment variables..."
+        
+        # Check for hardcoded secrets (basic check)
+        if grep -iE "(password|secret|key|token).*=.*[^\$\{]" docker-compose.yml; then
+          echo "🚨 WARNING: Potential hardcoded secrets found! Use environment variables instead."
+          grep -inE "(password|secret|key|token).*=.*[^\$\{]" docker-compose.yml
+        else
+          echo "✅ No hardcoded secrets detected"
+        fi
+        
+        # Check for proper environment variable usage
+        if grep -q "\${.*:-.*}" docker-compose.yml; then
+          echo "✅ Found environment variables with default values - good practice!"
+        fi
+        
+    - name: Check resource limits
+      run: |
+        echo "🔍 Checking for resource limits..."
+        
+        # Check if any services have resource limits
+        if grep -qE "(mem_limit|cpus|deploy:)" docker-compose.yml; then
+          echo "✅ Found resource constraints - good for production!"
+        else
+          echo "⚠️  Warning: No resource limits found. Consider adding memory/CPU limits for production."
+        fi
+        
+    - name: Generate Docker Compose Report
+      run: |
+        echo "📊 Docker Compose Analysis Summary" > docker-compose-report.md
+        echo "====================================" >> docker-compose-report.md
+        echo "" >> docker-compose-report.md
+        echo "**File:** docker-compose.yml" >> docker-compose-report.md
+        echo "**Analysis Date:** $(date)" >> docker-compose-report.md
+        echo "" >> docker-compose-report.md
+        
+        # Count services
+        SERVICES_COUNT=$(grep -c "^[[:space:]]*[a-zA-Z-]*:$" docker-compose.yml || echo "0")
+        echo "**Services:** $SERVICES_COUNT" >> docker-compose-report.md
+        
+        # List services
+        echo "" >> docker-compose-report.md
+        echo "### Services Found:" >> docker-compose-report.md
+        grep "^[[:space:]]*[a-zA-Z-]*:$" docker-compose.yml | sed 's/://' | sed 's/^/- /' >> docker-compose-report.md
+        
+        # Security summary
+        echo "" >> docker-compose-report.md
+        echo "### Security Analysis:" >> docker-compose-report.md
+        
+        if grep -q "read_only: true" docker-compose.yml; then
+          echo "- ✅ Read-only containers configured" >> docker-compose-report.md
+        else
+          echo "- ⚠️  No read-only containers found" >> docker-compose-report.md
+        fi
+        
+        if grep -q "networks:" docker-compose.yml; then
+          echo "- ✅ Custom networks configured" >> docker-compose-report.md
+        else
+          echo "- ⚠️  Using default network" >> docker-compose-report.md
+        fi
+        
+        cat docker-compose-report.md
+        
+    - name: Upload Docker Compose analysis report
+      uses: actions/upload-artifact@v3
+      with:
+        name: docker-compose-analysis
+        path: docker-compose-report.md
 
   summary:
     name: Quality Gate
