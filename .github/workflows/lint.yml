@@ -200,13 +200,29 @@ jobs:
     - name: Install docker-compose linting tools
       run: |
         python -m pip install --upgrade pip
-        pip install yamllint
+        pip install docker-compose yamllint
         npm install -g dockerfilelint
+        
+        # Verify docker-compose installation
+        docker-compose --version
         
     - name: Validate docker-compose.yml syntax
       run: |
         echo "🔍 Validating docker-compose.yml syntax..."
-        docker-compose config -q
+        
+        # Try docker-compose first, then docker compose (newer syntax)
+        if command -v docker-compose > /dev/null 2>&1; then
+          docker-compose config -q
+          echo "✅ docker-compose syntax validation passed"
+        elif command -v docker > /dev/null 2>&1 && docker compose version > /dev/null 2>&1; then
+          docker compose config -q
+          echo "✅ docker compose syntax validation passed"
+        else
+          echo "⚠️ docker-compose not available, skipping syntax validation"
+          echo "Using basic YAML validation instead..."
+          python -c "import yaml; yaml.safe_load(open('docker-compose.yml'))"
+          echo "✅ Basic YAML syntax validation passed"
+        fi
         
     - name: Check docker-compose.yml with yamllint
       run: |

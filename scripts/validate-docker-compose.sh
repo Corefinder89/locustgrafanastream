@@ -22,11 +22,32 @@ echo
 
 # Test 1: Validate syntax
 echo "🔍 Test 1: Validating YAML syntax..."
-if docker-compose config -q; then
-    echo "✅ YAML syntax is valid"
+
+# Try different docker-compose commands
+if command -v docker-compose > /dev/null 2>&1; then
+    if docker-compose config -q; then
+        echo "✅ YAML syntax is valid (docker-compose)"
+    else
+        echo "❌ YAML syntax error"
+        EXIT_CODE=1
+    fi
+elif command -v docker > /dev/null 2>&1 && docker compose version > /dev/null 2>&1; then
+    if docker compose config -q; then
+        echo "✅ YAML syntax is valid (docker compose)"
+    else
+        echo "❌ YAML syntax error"
+        EXIT_CODE=1
+    fi
 else
-    echo "❌ YAML syntax error"
-    EXIT_CODE=1
+    echo "⚠️ docker-compose not available, using basic YAML validation"
+    if python3 -c "import yaml; yaml.safe_load(open('$COMPOSE_FILE'))" 2>/dev/null; then
+        echo "✅ Basic YAML syntax is valid"
+    elif python -c "import yaml; yaml.safe_load(open('$COMPOSE_FILE'))" 2>/dev/null; then
+        echo "✅ Basic YAML syntax is valid"
+    else
+        echo "❌ YAML syntax error"
+        EXIT_CODE=1
+    fi
 fi
 echo
 
