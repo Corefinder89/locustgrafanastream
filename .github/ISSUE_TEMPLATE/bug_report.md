@@ -10,6 +10,7 @@ assignees: ''
 <!-- A clear and concise description of what the bug is -->
 
 ## 🔄 Steps to Reproduce
+
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
@@ -22,6 +23,7 @@ assignees: ''
 <!-- A clear and concise description of what actually happened -->
 
 ## 📱 Environment
+
 - OS: [e.g. Windows 10, Ubuntu 20.04]
 - Docker Version: [e.g. 20.10.8]
 - Docker Compose Version: [e.g. 1.29.2]
@@ -32,17 +34,20 @@ assignees: ''
 <!-- If applicable, add logs from the affected services -->
 
 ### Locust Logs
-```
+
+```python
 Paste locust service logs here
 ```
 
 ### Prometheus Logs
-```
+
+```python
 Paste prometheus service logs here
 ```
 
 ### Grafana Logs
-```
+
+```python
 Paste grafana service logs here
 ```
 

@@ -25,6 +25,7 @@ permissions:
 **After:** Using `$GITHUB_STEP_SUMMARY` for rich output that appears in the Actions tab
 
 **Benefits:**
+
 - ✅ No permission issues
 - ✅ Rich markdown formatting
 - ✅ Always visible in Actions tab
@@ -33,6 +34,7 @@ permissions:
 ### 3. Enhanced Error Reporting
 
 **Failure Summary:**
+
 ```markdown
 ## 🚨 Code Quality Check Failed
 
@@ -48,6 +50,7 @@ pre-commit run --all-files  # Run pre-commit hooks
 ```
 
 **Success Summary:**
+
 ```markdown
 ## ✅ Code Quality Check Passed
 
@@ -59,35 +62,14 @@ All linting checks have passed successfully!
 ### New Docker Linting Features
 
 1. **Comprehensive YAML Validation**
-   - Syntax checking with `docker-compose config`
    - YAML linting with `yamllint`
    - Docker-specific YAML rules
-
-2. **Security Best Practices Check**
-   - ✅ Read-only container verification
-   - ✅ Restart policy validation
-   - ✅ Custom network usage
-   - ✅ Volume mount security
-   - ⚠️  Hardcoded secrets detection
-   - 🚨 Dangerous port exposure alerts
-
-3. **Production Readiness**
-   - Image tag validation (avoid `:latest`)
-   - Resource limits checking
-   - Environment variable security
-   - Port exposure analysis
-
-4. **Custom Validation Script**
-   - `scripts/validate-docker-compose.sh`
-   - Comprehensive security checks
-   - Best practice recommendations
-   - Detailed reporting
 
 ### Docker Linting Workflow Steps
 
 ```yaml
 - name: Validate docker-compose.yml syntax
-- name: Check docker-compose.yml with yamllint  
+- name: Check docker-compose.yml with yamllint
 - name: Run custom Docker Compose validation
 - name: Validate docker-compose services configuration
 - name: Check for exposed ports security
@@ -96,29 +78,6 @@ All linting checks have passed successfully!
 - name: Check resource limits
 - name: Generate Docker Compose Report
 ```
-
-### What Gets Checked
-
-#### ✅ Security Checks
-- Read-only containers (`read_only: true`)
-- Restart policies
-- Custom networks for isolation
-- Read-only volume mounts (`:ro`)
-- Hardcoded secrets detection
-- Dangerous port exposure (SSH, RDP)
-- Sensitive directory mounts
-
-#### ✅ Best Practices
-- Specific image tags (not `:latest`)
-- Environment variable usage with defaults
-- Resource limits configuration
-- Proper network isolation
-
-#### ✅ Production Readiness
-- Service configuration validation
-- Port mapping security
-- Volume mount permissions
-- Container security settings
 
 ## 📊 New Makefile Commands
 
@@ -130,12 +89,14 @@ make lint           # Run all linters (now includes Docker)
 ## 🎯 Results
 
 ### Before
+
 - ❌ GitHub Actions permission errors
 - ❌ Basic Docker Compose syntax checking only
 - ❌ No security validation
 - ❌ Limited error reporting
 
-### After  
+### After
+
 - ✅ Proper GitHub Actions permissions
 - ✅ Comprehensive Docker Compose linting
 - ✅ Security best practices validation
@@ -143,22 +104,10 @@ make lint           # Run all linters (now includes Docker)
 - ✅ Custom validation scripts
 - ✅ Production readiness checks
 
-## 🚀 Usage
-
-### Local Testing
-```bash
-# Test Docker Compose files
-make lint-docker
-
-# Run all linters
-make lint
-
-# Run custom validation script directly
-./scripts/validate-docker-compose.sh
-```
-
 ### GitHub Actions
+
 The workflow now automatically:
+
 1. Validates Docker Compose syntax
 2. Runs security checks
 3. Generates detailed reports
@@ -168,7 +117,7 @@ The workflow now automatically:
 ## 📈 Benefits
 
 1. **Enhanced Security** - Comprehensive security validation
-2. **Better UX** - Clear feedback without permission issues  
+2. **Better UX** - Clear feedback without permission issues
 3. **Production Ready** - Best practices enforcement
 4. **Maintainable** - Automated checks prevent regressions
 5. **Transparent** - Detailed reporting and summaries
