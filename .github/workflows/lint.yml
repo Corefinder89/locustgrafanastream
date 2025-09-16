@@ -113,6 +113,7 @@ jobs:
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
         echo "make lint          # Run all linters" >> $GITHUB_STEP_SUMMARY
         echo "make format        # Format all code" >> $GITHUB_STEP_SUMMARY
+        echo "pre-commit autoupdate" >> $GITHUB_STEP_SUMMARY
         echo "pre-commit run --all-files  # Run pre-commit hooks" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
