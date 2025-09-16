@@ -75,6 +75,7 @@ All services run in an isolated Docker network with automatic service discovery 
    ```
 
 3. **Access the applications**
+
    | Service | URL | Credentials |
    |---------|-----|-----------|
    | 🕷️ Locust Web UI | <http://localhost:8089> | N/A |
