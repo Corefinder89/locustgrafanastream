@@ -47,7 +47,7 @@ fi
 if [ -n "$PYTHON_CMD" ]; then
     # Check for required Python packages
     PYTHON_PACKAGES=("yaml" "black" "flake8" "isort" "mypy" "bandit" "yamllint")
-    
+
     for package in "${PYTHON_PACKAGES[@]}"; do
         if $PYTHON_CMD -c "import $package" 2>/dev/null; then
             echo "✅ $package available"
@@ -64,7 +64,7 @@ echo "📦 Checking Node.js tools..."
 
 if command -v node > /dev/null 2>&1; then
     echo "✅ Node.js available"
-    
+
     NODE_PACKAGES=("markdownlint-cli" "jsonlint")
     for package in "${NODE_PACKAGES[@]}"; do
         if command -v ${package} > /dev/null 2>&1; then
@@ -94,7 +94,7 @@ if [ ${#MISSING_TOOLS[@]} -eq 0 ]; then
 else
     echo "⚠️  Some tools are missing. Here's how to install them:"
     echo ""
-    
+
     # Installation suggestions
     if [[ " ${MISSING_TOOLS[@]} " =~ " python " ]]; then
         echo "📥 Install Python:"
@@ -108,7 +108,7 @@ else
         echo "  winget install Python.Python.3"
         echo ""
     fi
-    
+
     # Python packages
     PYTHON_MISSING=($(printf '%s\n' "${MISSING_TOOLS[@]}" | grep '^python:' | sed 's/^python://'))
     if [ ${#PYTHON_MISSING[@]} -gt 0 ]; then
@@ -118,7 +118,7 @@ else
         echo "  pip install ${PYTHON_MISSING[*]}"
         echo ""
     fi
-    
+
     if [[ " ${MISSING_TOOLS[@]} " =~ " node " ]]; then
         echo "📥 Install Node.js:"
         echo "  # On Ubuntu/Debian:"
@@ -132,7 +132,7 @@ else
         echo "  winget install OpenJS.NodeJS"
         echo ""
     fi
-    
+
     # Node packages
     NODE_MISSING=($(printf '%s\n' "${MISSING_TOOLS[@]}" | grep '^node:' | sed 's/^node://'))
     if [ ${#NODE_MISSING[@]} -gt 0 ]; then
@@ -140,7 +140,7 @@ else
         echo "  npm install -g ${NODE_MISSING[*]}"
         echo ""
     fi
-    
+
     if [[ " ${MISSING_TOOLS[@]} " =~ " docker-compose " ]]; then
         echo "📥 Install Docker Compose:"
         echo "  # On Ubuntu/Debian:"
@@ -150,7 +150,7 @@ else
         echo "  https://docs.docker.com/get-docker/"
         echo ""
     fi
-    
+
     echo "💡 Quick setup:"
     echo "  ./setup-linters.ps1  # On Windows"
     echo "  # or"

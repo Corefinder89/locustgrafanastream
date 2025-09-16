@@ -33,6 +33,7 @@ locust:
 ```
 
 **Line-by-line explanation:**
+
 - `image: locustio/locust` - Uses the official Locust Docker image
 - `ports: "8089:8089"` - Maps host port 8089 to container port 8089 (Locust web UI)
 - `volumes: ./load_tests/:/mnt/locust` - Mounts local `load_tests/` folder to `/mnt/locust` in container
@@ -61,6 +62,7 @@ locust-metrics-exporter:
 ```
 
 **Line-by-line explanation:**
+
 - `image: containersol/locust_exporter` - Third-party exporter that converts Locust metrics to Prometheus format
 - `ports: "9646:9646"` - Exposes metrics endpoint on port 9646
 - `environment: LOCUST_EXPORTER_URI=http://locust:8089` - Tells exporter where to find Locust API
@@ -89,6 +91,7 @@ prometheus:
 ```
 
 **Line-by-line explanation:**
+
 - `image: prom/prometheus:latest` - Official Prometheus image
 - `container_name: prometheus` - Sets explicit container name (useful for networking)
 - `volumes: ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro` - Mounts config file
@@ -124,6 +127,7 @@ grafana:
 ```
 
 **Line-by-line explanation:**
+
 - `image: grafana/grafana:latest` - Official Grafana image
 - `ports: "3000:3000"` - Grafana web UI port
 - **Multiple volumes for different purposes:**
@@ -147,6 +151,7 @@ volumes:
 ```
 
 **Explanation:**
+
 - Creates a named volume called `grafana_data`
 - This persists Grafana data (dashboards, users, settings) even when containers are recreated
 - Docker manages this volume's lifecycle independently of containers
@@ -162,6 +167,7 @@ networks:
 ```
 
 **Explanation:**
+
 - Creates a custom network called `monitoring`
 - Uses `bridge` driver (default for single-host networking)
 - All services can communicate using service names (e.g., `http://locust:8089`)
@@ -210,17 +216,20 @@ locust-metrics-exporter
 ## **Volume Mounts**
 
 ### Host to Container Mounts
+
 - `./load_tests/` → `/mnt/locust` (Locust test files)
 - `./prometheus/prometheus.yml` → `/etc/prometheus/prometheus.yml` (Prometheus config)
 - `./Dashboard/dashboard.json` → `/etc/grafana/provisioning/dashboards/dashboard.json` (Pre-built dashboard)
 - `./Dashboard/provisioning/` → `/etc/grafana/provisioning/` (Auto-provisioning configs)
 
 ### Named Volumes
+
 - `grafana_data` → `/var/lib/grafana` (Persistent Grafana data)
 
 ## **Environment Configuration**
 
 ### Grafana Credentials
+
 ```bash
 # Default credentials
 GF_SECURITY_ADMIN=admin
@@ -232,6 +241,7 @@ export GF_SECURITY_PASSWORD=mypassword
 ```
 
 ### Service URLs (Internal Network)
+
 - Locust API: `http://locust:8089`
 - Metrics Exporter: `http://locust-metrics-exporter:9646`
 - Prometheus: `http://prometheus:9090`
@@ -250,27 +260,32 @@ export GF_SECURITY_PASSWORD=mypassword
 ## **Common Operations**
 
 ### Start the stack
+
 ```bash
 docker-compose up -d
 ```
 
 ### View logs
+
 ```bash
 docker-compose logs [service-name]
 docker-compose logs -f  # Follow logs for all services
 ```
 
 ### Check service status
+
 ```bash
 docker-compose ps
 ```
 
 ### Scale services (if needed)
+
 ```bash
 docker-compose up -d --scale locust=2
 ```
 
 ### Stop and cleanup
+
 ```bash
 docker-compose down        # Stop containers
 docker-compose down -v     # Stop containers and remove volumes
