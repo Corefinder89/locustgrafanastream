@@ -14,7 +14,7 @@ A complete containerized solution for real-time load testing visualization using
 ![Architecture Diagram](images/locustgraphanastream.drawio.png)
 
 **Data Flow:**
-```
+```yml
 Locust → Metrics Exporter → Prometheus → Grafana Dashboard
 ```
 
@@ -85,7 +85,7 @@ All services run in an isolated Docker network with automatic service discovery 
 
 ## 📁 Project Structure
 
-```
+```yml
 locustgrafanastream/
 ├── Dashboard/
 │   ├── dashboard.json                 # Pre-configured Grafana dashboard
