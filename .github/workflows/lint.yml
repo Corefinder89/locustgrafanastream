@@ -58,7 +58,7 @@ jobs:
         run: |-
           echo "Lint job: ${{ needs.lint.result }}"
           echo "Security job: ${{ needs.security.result }}"
-          if [[ "${{ needs.lint.result }}" == "failure"; then
+          if [[ "${{ needs.lint.result }}" == "failure" ]]; then
             echo "❌ Quality gate failed - linting issues found"
             exit 1
           else
