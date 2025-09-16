@@ -32,17 +32,17 @@ assignees: ''
 <!-- If applicable, add logs from the affected services -->
 
 ### Locust Logs
-```
+```python
 Paste locust service logs here
 ```
 
 ### Prometheus Logs
-```
+```python
 Paste prometheus service logs here
 ```
 
 ### Grafana Logs
-```
+```python
 Paste grafana service logs here
 ```
 
