@@ -1,4 +1,4 @@
-.PHONY: help lint lint-python lint-yaml lint-json lint-md format format-python install-linters
+.PHONY: help lint lint-python lint-yaml lint-json lint-md lint-docker format format-python install-linters
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -7,7 +7,7 @@ install-linters: ## Install all linters
 	pip install black flake8 isort mypy bandit yamllint pre-commit
 	npm install -g markdownlint-cli jsonlint
 
-lint: lint-python lint-yaml lint-json lint-md ## Run all linters
+lint: lint-python lint-yaml lint-json lint-md lint-docker ## Run all linters
 
 lint-python: ## Lint Python files
 	@echo "Running Python linters..."
@@ -26,6 +26,14 @@ lint-json: ## Lint JSON files
 lint-md: ## Lint Markdown files
 	@echo "Linting Markdown files..."
 	markdownlint *.md
+
+lint-docker: ## Lint Docker Compose files
+	@echo "Linting Docker Compose files..."
+	docker-compose config -q
+	yamllint docker-compose.yml
+	@echo "Running custom Docker Compose validation..."
+	@chmod +x scripts/validate-docker-compose.sh
+	@./scripts/validate-docker-compose.sh
 
 format: format-python ## Format all code
 

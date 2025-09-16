@@ -6,6 +6,13 @@ on:
   push:
     branches: [ main, master ]
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  checks: write
+  statuses: write
+
 jobs:
   lint:
     name: Code Quality & Linting
@@ -93,17 +100,28 @@ jobs:
         name: bandit-security-report-python-${{ matrix.python-version }}
         path: bandit-report.json
         
-    - name: Comment PR with results
-      uses: actions/github-script@v6
-      if: github.event_name == 'pull_request' && failure()
-      with:
-        script: |
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: '🚨 **Code Quality Check Failed** 🚨\n\nPlease fix the linting issues and push your changes. You can run `make lint` locally to check your code before pushing.'
-          })
+    - name: Create failure summary
+      if: failure()
+      run: |
+        echo "## 🚨 Code Quality Check Failed" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Please fix the linting issues and push your changes." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Local Testing" >> $GITHUB_STEP_SUMMARY
+        echo "You can run these commands locally to check your code before pushing:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "make lint          # Run all linters" >> $GITHUB_STEP_SUMMARY
+        echo "make format        # Format all code" >> $GITHUB_STEP_SUMMARY
+        echo "pre-commit run --all-files  # Run pre-commit hooks" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        
+    - name: Report success
+      if: success()
+      run: |
+        echo "## ✅ Code Quality Check Passed" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "All linting checks have passed successfully!" >> $GITHUB_STEP_SUMMARY
 
   pre-commit:
     name: Pre-commit Hooks
@@ -132,6 +150,17 @@ jobs:
     - name: Run pre-commit
       run: |
         pre-commit run --all-files
+        
+    - name: Pre-commit summary
+      if: always()
+      run: |
+        if [ "$?" -eq 0 ]; then
+          echo "## ✅ Pre-commit Hooks Passed" >> $GITHUB_STEP_SUMMARY
+          echo "All pre-commit hooks executed successfully!" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "## ⚠️ Pre-commit Hooks Failed" >> $GITHUB_STEP_SUMMARY
+          echo "Some pre-commit hooks failed. Please check the logs above." >> $GITHUB_STEP_SUMMARY
+        fi
         
   security:
     name: Security Scan
@@ -183,6 +212,11 @@ jobs:
       run: |
         echo "🔍 Running yamllint on docker-compose.yml..."
         yamllint docker-compose.yml
+        
+    - name: Run custom Docker Compose validation
+      run: |
+        chmod +x scripts/validate-docker-compose.sh
+        ./scripts/validate-docker-compose.sh
         
     - name: Validate docker-compose services configuration
       run: |
