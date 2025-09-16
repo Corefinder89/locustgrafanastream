@@ -8,7 +8,7 @@ This document provides a detailed breakdown of the `docker-compose.yml` file and
 
 This `docker-compose.yml` defines a complete load testing monitoring stack with 4 services that work together:
 
-```
+```yml
 Locust → Metrics Exporter → Prometheus → Grafana
 ```
 
@@ -197,7 +197,7 @@ Here's how the services interact:
 
 ## **Container Dependencies**
 
-```
+```yml
 grafana
   └── depends_on: prometheus
       └── (no dependencies)
