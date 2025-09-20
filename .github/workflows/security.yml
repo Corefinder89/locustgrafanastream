@@ -1,0 +1,35 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [enhancements]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  python-security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Bandit
+        run: pip install bandit
+
+      - name: Run Bandit on load_tests
+        run: bandit -r ./load_tests
+  summary:
+    name: Security Scan Summary
+    needs: [python-security]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check all jobs status
+        run: |-
+          echo "Python Security job: ${{ needs.python-security.result }}"
