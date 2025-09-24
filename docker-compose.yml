@@ -1,3 +1,9 @@
+# In Linux, the /mount directory (often written as /mnt) is used as a mount point — a place in the directory tree where additional file
+# systems can be attached (or "mounted") to the main file system. Let's clarify:
+# What is a Mount Point?
+#   - In Linux, everything is a file, and everything exists in a single directory tree starting from / (the root).
+#   - To access other storage devices (USB drives, partitions, remote shares), they must be "mounted" into this tree.
+#   - A mount point is simply a directory (like /mnt/usb) where the contents of another file system appear after being mounted.
 services:
   locust:
     image: locustio/locust
@@ -24,6 +30,14 @@ services:
     restart: unless-stopped
     read_only: true
 
+#   ./prometheus.yml → a config file on your host (relative to the Compose file).
+#     - It’s mounted inside the container at /etc/prometheus/prometheus.yml.
+#     - The command: line overrides the default command and tells Prometheus to use this file.
+#     - Prometheus reads this file to know:
+#     - What targets to scrape
+#     - What rules to load
+#     - How to label and store metrics
+
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -37,6 +51,14 @@ services:
       - monitoring
     restart: unless-stopped
     read_only: true
+
+#   Docker creates a named volume called grafana_data (stored in /var/lib/docker/volumes/grafana_data/_data on the host).
+#     This volume is mounted into the container at /var/lib/grafana, where Grafana stores its:
+#           - Dashboards
+#           - User settings
+#           - Plugins
+#           - Database
+#     This makes your data persistent — it survives container restarts, rebuilds, or even deletions.
 
   grafana:
     image: grafana/grafana:latest
