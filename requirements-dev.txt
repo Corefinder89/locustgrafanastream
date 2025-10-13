@@ -1,7 +1,7 @@
 # Development dependencies for linting and formatting
 black==25.1.0
 flake8==7.3.0
-isort==6.0.1
+isort==7.0.0
 mypy==1.6.1
 bandit==1.7.5
 yamllint==1.32.0
